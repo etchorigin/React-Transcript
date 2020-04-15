@@ -12,8 +12,7 @@
     "@blueprintjs/core": "^3.25.0",
     "@blueprintjs/select": "^3.12.1",
     "react-player": "^1.15.3",
-    "@dschoon/react-waves": "^3.0.1",
-    "date-fns": "^2.12.0"
+    "@dschoon/react-waves": "^3.0.1"
   },
   "scripts": {
     "start": "react-scripts start",

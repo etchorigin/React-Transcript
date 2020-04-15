@@ -29,6 +29,15 @@
   margin-top: 1rem;
 }
 
+.Details-MediaControls-Slider-Container {
+  margin: 1rem 0 1rem 0;
+}
+
+.Details-Info-Time {
+  width: 4rem;
+  text-align: center;
+}
+
 .Icon-Spacer {
   margin: 0 0.4rem 0 0.4rem;
 }
