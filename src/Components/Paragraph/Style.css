@@ -1,0 +1,24 @@
+.Paragraph-Container {
+  display: flex;
+  padding: 2rem;
+}
+
+.Paragraph-Time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 2rem;
+  font-size: medium;
+}
+
+.Paragraph-Content {
+  font-size: medium;
+}
+
+.Speaker-Tag {
+  margin-top: 1rem;
+}
+
+.Span-Highlight {
+  background-color: #317cbd;
+}

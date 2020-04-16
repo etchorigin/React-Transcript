@@ -7,24 +7,30 @@ import {
   H6,
   H2,
   Icon,
-  Intent,
   Slider,
-  Switch,
 } from "@blueprintjs/core";
 import ReactPlayer from "react-player";
 
 import "./App.css";
 
-import { formatSeconds, playedProgress } from "./TimeHelper";
+import SelectButton from "./Components/SelectButton";
+import PopSlider from "./Components/PopSlider";
+import Paragraph from "./Components/Paragraph";
+
+import { formatSeconds, formatProgressToSeconds } from "./TimeHelper";
+
+import Transcript from "./Transcript";
 
 FocusStyleManager.onlyShowFocusOnTabs();
 document.body.className = "bp3-dark";
 
-const initialState = {
-  playing: true,
+const INITIAL_STATE = {
+  playing: false,
   played: 0,
-  playedSeconds: "",
-  durationSeconds: "",
+  playedSeconds: 0,
+  durationSeconds: 0,
+  playBackRate: 1,
+  volume: 0.5,
   seeking: false,
 };
 
@@ -42,20 +48,65 @@ const reducer = (state, action) => {
         playedSeconds: action.seconds,
         played: action.fraction,
       };
-    case "SET_PLAYED_AND_SEEKING":
-      return { ...state, played: action.value, seeking: true };  
+    case "SET_PLAYED_AND_SECONDS_AND_SEEKING":
+      return {
+        ...state,
+        played: action.played,
+        playedSeconds: action.playedSeconds,
+        seeking: true,
+      };
     case "SET_PLAYED":
       return { ...state, played: action.value };
     case "SET_SEEKING":
       return { ...state, seeking: action.value };
-
+    case "SET_PLAY_BACK_RATE":
+      return { ...state, playBackRate: action.value };
+    case "SET_Volume":
+      return { ...state, volume: action.value };
     default:
       throw new Error();
   }
 };
 
+const processTranscript = (transcript, endtime) => {
+  const data = transcript.paragraphs.map((para, paraIndex) => {
+    const { cues } = para;
+    const spans = [];
+
+    cues.forEach((cue, index) => {
+      let end;
+
+      if (index + 1 === cues.length) {
+        if (paraIndex + 1 === transcript.paragraphs.length) {
+          end = endtime;
+        } else {
+          end = transcript.paragraphs[paraIndex + 1].cues[0].time / 1000;
+        }
+      } else {
+        end = cues[index + 1].time / 1000;
+      }
+
+      spans.push({
+        id: index + 1,
+        start: cue.time / 1000,
+        end: end,
+        value: cue.text,
+      });
+    });
+
+    return {
+      id: paraIndex + 1,
+      start: spans[0].start,
+      spans: [].concat(spans),
+      end: spans[spans.length - 1].end,
+    };
+  });
+  return data;
+};
+
 function App() {
-  const [state, dispatch] = React.useReducer(reducer, initialState);
+  const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
+  const [transcript, setTranscript] = React.useState([]);
   const player = React.useRef();
   const seekingRef = React.useRef();
   React.useEffect(() => {
@@ -64,10 +115,11 @@ function App() {
 
   const handleDurationLoad = (duration) => {
     dispatch({ type: "SET_DURATION_SECONDS", value: duration });
+    setTranscript(processTranscript(Transcript, duration));
   };
 
-  const handleProgress = progress => {
-    if(!seekingRef.current) {
+  const handleProgress = (progress) => {
+    if (!seekingRef.current) {
       dispatch({
         type: "SET_PLAYED_AND_SECONDS",
         seconds: progress.playedSeconds,
@@ -81,13 +133,25 @@ function App() {
     player.current.seekTo(0, "fraction");
   };
 
+  const handleStepBack = () => {
+    player.current.seekTo(state.playedSeconds - 5, "seconds");
+  };
+
+  const handleStepForward = () => {
+    player.current.seekTo(state.playedSeconds + 5, "seconds");
+  };
+
   const handlePlayPause = () => {
     console.log("APP: ", state.playing ? "Pausing..." : "Playing...");
     dispatch({ type: state.playing ? "PAUSE" : "PLAY" });
   };
 
   const handleSliderChange = (step) => {
-    dispatch({ type: "SET_PLAYED_AND_SEEKING", value: step });
+    dispatch({
+      type: "SET_PLAYED_AND_SECONDS_AND_SEEKING",
+      played: step,
+      playedSeconds: formatProgressToSeconds(step, state.durationSeconds),
+    });
   };
 
   const handleSliderRelease = () => {
@@ -95,15 +159,25 @@ function App() {
     player.current.seekTo(state.played / 1000, "fraction");
   };
 
+  const handlePlayBackRateSelect = (value) => {
+    dispatch({ type: "SET_PLAY_BACK_RATE", value });
+  };
+
+  const handleVolumeChange = (value) => {
+    dispatch({ type: "SET_Volume", value: value / 10 });
+  };
+
   return (
     <div className="App">
       <Card elevation={Elevation.TWO} className="Top-Container">
         <ReactPlayer
           ref={player}
-          url="https://www.youtube.com/watch?v=ysz5S6PUM-U"
+          url="./sample/Video.mp4"
           height="200px"
           width="200px"
           playing={state.playing}
+          playbackRate={state.playBackRate}
+          volume={state.volume}
           onProgress={handleProgress}
           onDuration={handleDurationLoad}
         />
@@ -123,26 +197,43 @@ function App() {
           </div>
           <div className="Details-MediaControls-Container">
             <Button icon="reset" onClick={handleReset} />
-            <Button icon="step-backward" />
+            <Button icon="step-backward" onClick={handleStepBack} />
             <Button
               icon={state.playing ? "pause" : "play"}
               onClick={handlePlayPause}
             />
-            <Button icon="step-forward" />
-            <Button icon="volume-up" />
-            <Button text="1x" />
-          </div>
-            <Slider
-              min={0}
-              max={1000}
-              stepSize={1}
-              value={state.played}
-              labelRenderer={false}
-              onChange={handleSliderChange}
-              onRelease={handleSliderRelease}
-              className="Details-MediaControls-Slider-Container"
+            <Button icon="step-forward" onClick={handleStepForward} />
+            <PopSlider
+              volume={state.volume}
+              handleChange={handleVolumeChange}
             />
+            <SelectButton
+              playBackRate={state.playBackRate}
+              handleSelect={handlePlayBackRateSelect}
+            />
+          </div>
+          <Slider
+            min={0}
+            max={1000}
+            stepSize={1}
+            value={state.played}
+            labelRenderer={false}
+            onChange={handleSliderChange}
+            onRelease={handleSliderRelease}
+            className="Details-MediaControls-Slider-Container"
+          />
         </div>
+      </Card>
+      <Card elevation={Elevation.TWO} className="Bottom-Container">
+        {transcript.map((para) => (
+          <Paragraph
+            key={para.id}
+            start={para.start}
+            end={para.end}
+            spans={para.spans}
+            highlightIndex={1}
+          />
+        ))}
       </Card>
     </div>
   );
