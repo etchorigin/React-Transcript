@@ -174,6 +174,7 @@ function App() {
 
   const handleSeekTo = (seconds) => {
     player.current.seekTo(seconds, "seconds");
+    dispatch({ type: "PLAY" });
   };
 
   const checkForHighlight = React.useMemo(
