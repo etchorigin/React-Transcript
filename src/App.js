@@ -84,6 +84,10 @@ const reducer = (state, action) => {
         played: action.fraction,
       };
     case "SET_PLAYED_AND_SECONDS_AND_SEEKING":
+      if (loaded) {
+        state.reactPlayer.seekTo(action.played / 1000, "fraction");
+        state.waveSurfer.seekTo(action.played / 1000);
+      }
       return {
         ...state,
         played: action.played,
@@ -93,10 +97,6 @@ const reducer = (state, action) => {
     case "SET_PLAYED":
       return { ...state, played: action.value };
     case "SET_SEEKING":
-      if (loaded) {
-        state.reactPlayer.seekTo(state.played / 1000, "fraction");
-        state.waveSurfer.seekTo(state.played / 1000);
-      }
       return { ...state, seeking: false, playing: true };
     case "SET_PLAY_BACK_RATE":
       return { ...state, playBackRate: action.value };
