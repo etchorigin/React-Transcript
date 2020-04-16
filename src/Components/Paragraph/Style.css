@@ -19,6 +19,11 @@
   margin-top: 1rem;
 }
 
+.Span-Text:hover {
+  background-color: #1f2b33;
+  cursor: pointer;
+}
+
 .Span-Highlight {
   background-color: #317cbd;
 }

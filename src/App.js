@@ -10,6 +10,7 @@ import {
   Slider,
 } from "@blueprintjs/core";
 import ReactPlayer from "react-player";
+import PerfectScrollbar from "react-perfect-scrollbar";
 
 import "./App.css";
 
@@ -171,6 +172,10 @@ function App() {
     dispatch({ type: "SET_Volume", value: value / 10 });
   };
 
+  const handleSeekTo = (seconds) => {
+    player.current.seekTo(seconds, "seconds");
+  };
+
   const checkForHighlight = React.useMemo(
     () => (paragraphID) => {
       const current = state.playedSeconds;
@@ -193,6 +198,7 @@ function App() {
           url="./sample/Video.mp4"
           height="200px"
           width="200px"
+          progressInterval={500}
           playing={state.playing}
           playbackRate={state.playBackRate}
           volume={state.volume}
@@ -201,7 +207,7 @@ function App() {
         />
         <div className="Details-Container">
           <H6 className="Light-Font">George Zaidan | TED-Ed</H6>
-          <H2>The bug that poops canday</H2>
+          <H2>The bug that poops candy</H2>
           <div className="Details-Info-Container">
             <span className="Details-Info-Time">
               {formatSeconds(state.playedSeconds)}
@@ -243,15 +249,18 @@ function App() {
         </div>
       </Card>
       <Card elevation={Elevation.TWO} className="Bottom-Container">
-        {transcript.map((para) => (
-          <Paragraph
-            key={para.id}
-            start={para.start}
-            end={para.end}
-            spans={para.spans}
-            highlightIndex={checkForHighlight(para.id)}
-          />
-        ))}
+        <PerfectScrollbar>
+          {transcript.map((para) => (
+            <Paragraph
+              key={para.id}
+              start={para.start}
+              end={para.end}
+              spans={para.spans}
+              highlightIndex={checkForHighlight(para.id)}
+              handleSeekTo={handleSeekTo}
+            />
+          ))}
+        </PerfectScrollbar>
       </Card>
     </div>
   );

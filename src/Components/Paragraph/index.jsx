@@ -5,7 +5,10 @@ import "./Style.css";
 import { formatSeconds } from "../../TimeHelper";
 
 const Paragraph = (props) => {
-  const { start, end, spans, highlightIndex = 0 } = props;
+  const { start, end, spans, handleSeekTo, highlightIndex = 0 } = props;
+
+  const handleSpanClick = (seconds) => () => handleSeekTo(seconds);
+
   return (
     <div className="Paragraph-Container">
       <div className="Paragraph-Time">
@@ -19,7 +22,10 @@ const Paragraph = (props) => {
         {spans.map((span) => (
           <span
             key={span.id}
-            className={highlightIndex === span.id ? "Span-Highlight" : ""}
+            onClick={handleSpanClick(span.start)}
+            className={
+              highlightIndex === span.id ? "Span-Highlight" : "Span-Text"
+            }
           >{`${span.value.replace(/(\r\n|\n|\r)/gm, "")} `}</span>
         ))}
       </div>

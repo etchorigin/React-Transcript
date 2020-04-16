@@ -12,7 +12,8 @@
     "@blueprintjs/core": "^3.25.0",
     "@blueprintjs/select": "^3.12.1",
     "react-player": "^1.15.3",
-    "@dschoon/react-waves": "^3.0.1"
+    "@dschoon/react-waves": "^3.0.1",
+    "react-perfect-scrollbar": "^1.5.8"
   },
   "scripts": {
     "start": "react-scripts start",
