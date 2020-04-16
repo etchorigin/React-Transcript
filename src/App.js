@@ -265,6 +265,7 @@ function App() {
               "https://download.ted.com/talks/GeorgeZaidan_Aphids_2019E.mp4?apikey=TEDDOWNLOAD"
             }
             options={{
+              audioRate: state.playBackRate,
               barHeight: 2,
               cursorWidth: 0,
               height: 50,
