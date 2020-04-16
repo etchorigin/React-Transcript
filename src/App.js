@@ -10,6 +10,7 @@ import {
   Slider,
 } from "@blueprintjs/core";
 import ReactPlayer from "react-player";
+import ReactWaves from "@dschoon/react-waves";
 import PerfectScrollbar from "react-perfect-scrollbar";
 
 import "./App.css";
@@ -112,6 +113,7 @@ const processTranscript = (transcript, endtime) => {
 function App() {
   const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
   const [transcript, setTranscript] = React.useState([]);
+  const [waveSurfer, setWaveSurfer] = React.useState();
   const player = React.useRef();
   const seekingRef = React.useRef();
   React.useEffect(() => {
@@ -121,6 +123,10 @@ function App() {
   const handleDurationLoad = (duration) => {
     dispatch({ type: "SET_DURATION_SECONDS", value: duration });
     setTranscript(processTranscript(Transcript, duration));
+  };
+
+  const handleEnded = () => {
+    dispatch({ type: "PAUSE" });
   };
 
   const handleProgress = (progress) => {
@@ -136,14 +142,19 @@ function App() {
   const handleReset = () => {
     console.log("APP: ", "Resetting...");
     player.current.seekTo(0, "fraction");
+    waveSurfer.seekTo(0);
   };
 
   const handleStepBack = () => {
-    player.current.seekTo(state.playedSeconds - 5, "seconds");
+    const seconds = state.playedSeconds - 5;
+    player.current.seekTo(seconds, "seconds");
+    waveSurfer.seekTo((1 / state.durationSeconds) * seconds);
   };
 
   const handleStepForward = () => {
-    player.current.seekTo(state.playedSeconds + 5, "seconds");
+    const seconds = state.playedSeconds + 5;
+    player.current.seekTo(seconds, "seconds");
+    waveSurfer.seekTo((1 / state.durationSeconds) * seconds);
   };
 
   const handlePlayPause = () => {
@@ -161,7 +172,9 @@ function App() {
 
   const handleSliderRelease = () => {
     dispatch({ type: "SET_SEEKING", value: false });
-    player.current.seekTo(state.played / 1000, "fraction");
+    const fraction = state.played / 1000;
+    player.current.seekTo(fraction, "fraction");
+    waveSurfer.seekTo(fraction);
   };
 
   const handlePlayBackRateSelect = (value) => {
@@ -174,6 +187,8 @@ function App() {
 
   const handleSeekTo = (seconds) => {
     player.current.seekTo(seconds, "seconds");
+    waveSurfer.seekTo((1 / state.durationSeconds) * seconds);
+
     dispatch({ type: "PLAY" });
   };
 
@@ -191,20 +206,28 @@ function App() {
     [transcript, state.playedSeconds]
   );
 
+  const handleWaveOnPosChange = (pos, wavesurfer) => {
+    if (!waveSurfer) {
+      setWaveSurfer(wavesurfer);
+    }
+  };
+
   return (
     <div className="App">
       <Card elevation={Elevation.TWO} className="Top-Container">
         <ReactPlayer
           ref={player}
           url="https://download.ted.com/talks/GeorgeZaidan_Aphids_2019E.mp4?apikey=TEDDOWNLOAD"
-          height="200px"
+          height="250px"
           width="200px"
-          progressInterval={500}
+          progressInterval={100}
           playing={state.playing}
           playbackRate={state.playBackRate}
           volume={state.volume}
           onProgress={handleProgress}
           onDuration={handleDurationLoad}
+          onEnded={handleEnded}
+          className="Player"
         />
         <div className="Details-Container">
           <H6 className="Light-Font">George Zaidan | TED-Ed</H6>
@@ -237,6 +260,28 @@ function App() {
               handleSelect={handlePlayBackRateSelect}
             />
           </div>
+          <ReactWaves
+            audioFile={
+              "https://download.ted.com/talks/GeorgeZaidan_Aphids_2019E.mp4?apikey=TEDDOWNLOAD"
+            }
+            options={{
+              barHeight: 2,
+              cursorWidth: 0,
+              height: 50,
+              hideScrollbar: true,
+              progressColor: "#317cbd",
+              responsive: true,
+              waveColor: "#1f2b33",
+              fillParent: true,
+              interact: false,
+            }}
+            volume={0}
+            zoom={1}
+            playing={state.playing}
+            pos={state.playedSeconds}
+            onPosChange={handleWaveOnPosChange}
+            className="Wave"
+          />
           <Slider
             min={0}
             max={1000}

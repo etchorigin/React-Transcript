@@ -49,6 +49,16 @@
   text-align: center;
 }
 
+.Player {
+  background-color: black;
+}
+
+.Wave {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 .Icon-Spacer {
   margin: 0 0.4rem 0 0.4rem;
 }
