@@ -196,7 +196,7 @@ function App() {
       <Card elevation={Elevation.TWO} className="Top-Container">
         <ReactPlayer
           ref={player}
-          url="./sample/Video.mp4"
+          url="https://download.ted.com/talks/GeorgeZaidan_Aphids_2019E.mp4?apikey=TEDDOWNLOAD"
           height="200px"
           width="200px"
           progressInterval={500}
