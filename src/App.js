@@ -69,6 +69,8 @@ const reducer = (state, action) => {
 };
 
 const processTranscript = (transcript, endtime) => {
+  let indexMark = 1;
+
   const data = transcript.paragraphs.map((para, paraIndex) => {
     const { cues } = para;
     const spans = [];
@@ -87,11 +89,13 @@ const processTranscript = (transcript, endtime) => {
       }
 
       spans.push({
-        id: index + 1,
+        id: indexMark,
         start: cue.time / 1000,
         end: end,
         value: cue.text,
       });
+
+      indexMark += 1;
     });
 
     return {
@@ -167,6 +171,20 @@ function App() {
     dispatch({ type: "SET_Volume", value: value / 10 });
   };
 
+  const checkForHighlight = React.useMemo(
+    () => (paragraphID) => {
+      const current = state.playedSeconds;
+      const spanObj = transcript[paragraphID - 1].spans.find(
+        (span) => current >= span.start && current < span.end
+      );
+      if (spanObj) {
+        return spanObj.id;
+      }
+      return 0;
+    },
+    [transcript, state.playedSeconds]
+  );
+
   return (
     <div className="App">
       <Card elevation={Elevation.TWO} className="Top-Container">
@@ -231,7 +249,7 @@ function App() {
             start={para.start}
             end={para.end}
             spans={para.spans}
-            highlightIndex={1}
+            highlightIndex={checkForHighlight(para.id)}
           />
         ))}
       </Card>
