@@ -4,7 +4,11 @@ import { Button, Slider, Popover, PopoverPosition } from "@blueprintjs/core";
 import "./Style.css";
 
 const PopSlider = (props) => {
-  const { volume, handleChange } = props;
+  const { volume, dispatch } = props;
+
+  const handleChange = (value) => {
+    dispatch({ type: "SET_Volume", value: value / 10 });
+  };
 
   const volumeIcon = () => {
     switch (volume) {

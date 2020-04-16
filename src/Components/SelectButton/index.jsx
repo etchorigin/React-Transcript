@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Menu } from "@blueprintjs/core";
-import { Select } from "@blueprintjs/select";
+import { Select as BPSelect } from "@blueprintjs/select";
 
 import "./Style.css";
 
@@ -29,8 +29,14 @@ const RenderPlayBackRateItem = (value, { handleClick }) => (
   />
 );
 
+const Select = React.memo(BPSelect);
+
 const SelectButton = (props) => {
-  const { playBackRate, handleSelect } = props;
+  const { playBackRate, dispatch } = props;
+
+  const handleSelect = (item) => {
+    dispatch({ type: "SET_PLAY_BACK_RATE", value: item });
+  };
 
   return (
     <Select
