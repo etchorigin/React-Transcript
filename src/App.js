@@ -34,16 +34,49 @@ const INITIAL_STATE = {
   playBackRate: 1,
   volume: 0.5,
   seeking: false,
+  waveSurfer: null,
+  reactPlayer: null,
 };
 
+const SOURCE_URL =
+  "https://download.ted.com/talks/GeorgeZaidan_Aphids_2019E.mp4?apikey=TEDDOWNLOAD";
+
 const reducer = (state, action) => {
+  const loaded = state.reactPlayer && state.waveSurfer;
+
   switch (action.type) {
     case "PLAY":
       return { ...state, playing: true };
     case "PAUSE":
       return { ...state, playing: false };
-    case "SET_DURATION_SECONDS":
-      return { ...state, durationSeconds: action.value };
+    case "RESET":
+      if (loaded) {
+        state.reactPlayer.seekTo(0, "fraction");
+        state.waveSurfer.seekTo(0);
+      }
+      return state;
+    case "STEP_BACK":
+      if (loaded) {
+        state.reactPlayer.seekTo(state.playedSeconds - 5, "seconds");
+        state.waveSurfer.seekTo(
+          (1 / state.durationSeconds) * (state.playedSeconds - 5)
+        );
+      }
+      return state;
+    case "STEP_FORWARD":
+      if (loaded) {
+        state.reactPlayer.seekTo(state.playedSeconds + 5, "seconds");
+        state.waveSurfer.seekTo(
+          (1 / state.durationSeconds) * (state.playedSeconds + 5)
+        );
+      }
+      return state;
+    case "SEEK_TO":
+      if (loaded) {
+        state.reactPlayer.seekTo(action.value, "seconds");
+        state.waveSurfer.seekTo((1 / state.durationSeconds) * action.value);
+      }
+      return { ...state, playing: true };
     case "SET_PLAYED_AND_SECONDS":
       return {
         ...state,
@@ -60,11 +93,23 @@ const reducer = (state, action) => {
     case "SET_PLAYED":
       return { ...state, played: action.value };
     case "SET_SEEKING":
-      return { ...state, seeking: action.value };
+      if (loaded) {
+        state.reactPlayer.seekTo(state.played / 1000, "fraction");
+        state.waveSurfer.seekTo(state.played / 1000);
+      }
+      return { ...state, seeking: false, playing: true };
     case "SET_PLAY_BACK_RATE":
       return { ...state, playBackRate: action.value };
     case "SET_Volume":
       return { ...state, volume: action.value };
+    case "SET_WAVESURFER":
+      return { ...state, waveSurfer: action.value };
+    case "SET_REACTPLAYER":
+      return {
+        ...state,
+        reactPlayer: action.player,
+        durationSeconds: action.duration,
+      };
     default:
       throw new Error();
   }
@@ -111,17 +156,28 @@ const processTranscript = (transcript, endtime) => {
 };
 
 function App() {
+  const useForceRerender = () => React.useReducer((x) => x + 1, 0)[1];
   const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
   const [transcript, setTranscript] = React.useState([]);
-  const [waveSurfer, setWaveSurfer] = React.useState();
-  const player = React.useRef();
+  const reactPlayer = React.useRef();
   const seekingRef = React.useRef();
   React.useEffect(() => {
     seekingRef.current = state.seeking;
   });
 
+  const forceRerender = useForceRerender();
+
+  const handleOnWaveformReady = ({ wavesurfer }) => {
+    console.log("Load: ", wavesurfer);
+    dispatch({ type: "SET_WAVESURFER", value: wavesurfer });
+  };
+
   const handleDurationLoad = (duration) => {
-    dispatch({ type: "SET_DURATION_SECONDS", value: duration });
+    dispatch({
+      type: "SET_REACTPLAYER",
+      player: reactPlayer.current,
+      duration: duration,
+    });
     setTranscript(processTranscript(Transcript, duration));
   };
 
@@ -141,20 +197,15 @@ function App() {
 
   const handleReset = () => {
     console.log("APP: ", "Resetting...");
-    player.current.seekTo(0, "fraction");
-    waveSurfer.seekTo(0);
+    dispatch({ type: "RESET" });
   };
 
   const handleStepBack = () => {
-    const seconds = state.playedSeconds - 5;
-    player.current.seekTo(seconds, "seconds");
-    waveSurfer.seekTo((1 / state.durationSeconds) * seconds);
+    dispatch({ type: "STEP_BACK" });
   };
 
   const handleStepForward = () => {
-    const seconds = state.playedSeconds + 5;
-    player.current.seekTo(seconds, "seconds");
-    waveSurfer.seekTo((1 / state.durationSeconds) * seconds);
+    dispatch({ type: "STEP_FORWARD" });
   };
 
   const handlePlayPause = () => {
@@ -171,25 +222,7 @@ function App() {
   };
 
   const handleSliderRelease = () => {
-    dispatch({ type: "SET_SEEKING", value: false });
-    const fraction = state.played / 1000;
-    player.current.seekTo(fraction, "fraction");
-    waveSurfer.seekTo(fraction);
-  };
-
-  const handlePlayBackRateSelect = (value) => {
-    dispatch({ type: "SET_PLAY_BACK_RATE", value });
-  };
-
-  const handleVolumeChange = (value) => {
-    dispatch({ type: "SET_Volume", value: value / 10 });
-  };
-
-  const handleSeekTo = (seconds) => {
-    player.current.seekTo(seconds, "seconds");
-    waveSurfer.seekTo((1 / state.durationSeconds) * seconds);
-
-    dispatch({ type: "PLAY" });
+    dispatch({ type: "SET_SEEKING" });
   };
 
   const checkForHighlight = React.useMemo(
@@ -206,18 +239,13 @@ function App() {
     [transcript, state.playedSeconds]
   );
 
-  const handleWaveOnPosChange = (pos, wavesurfer) => {
-    if (!waveSurfer) {
-      setWaveSurfer(wavesurfer);
-    }
-  };
-
   return (
     <div className="App">
+      {/* <button onClick={forceRerender}>force rerender</button> */}
       <Card elevation={Elevation.TWO} className="Top-Container">
         <ReactPlayer
-          ref={player}
-          url="https://download.ted.com/talks/GeorgeZaidan_Aphids_2019E.mp4?apikey=TEDDOWNLOAD"
+          ref={reactPlayer}
+          url={SOURCE_URL}
           height="250px"
           width="200px"
           progressInterval={100}
@@ -251,20 +279,16 @@ function App() {
               onClick={handlePlayPause}
             />
             <Button icon="step-forward" onClick={handleStepForward} />
-            <PopSlider
-              volume={state.volume}
-              handleChange={handleVolumeChange}
-            />
+            <PopSlider volume={state.volume} dispatch={dispatch} />
             <SelectButton
               playBackRate={state.playBackRate}
-              handleSelect={handlePlayBackRateSelect}
+              dispatch={dispatch}
             />
           </div>
           <ReactWaves
-            audioFile={
-              "https://download.ted.com/talks/GeorgeZaidan_Aphids_2019E.mp4?apikey=TEDDOWNLOAD"
-            }
+            audioFile={SOURCE_URL}
             options={{
+              backend: "MediaElement",
               audioRate: state.playBackRate,
               barHeight: 2,
               cursorWidth: 0,
@@ -280,7 +304,7 @@ function App() {
             zoom={1}
             playing={state.playing}
             pos={state.playedSeconds}
-            onPosChange={handleWaveOnPosChange}
+            onWaveformReady={handleOnWaveformReady}
             className="Wave"
           />
           <Slider
@@ -304,7 +328,7 @@ function App() {
               end={para.end}
               spans={para.spans}
               highlightIndex={checkForHighlight(para.id)}
-              handleSeekTo={handleSeekTo}
+              dispatch={dispatch}
             />
           ))}
         </PerfectScrollbar>
