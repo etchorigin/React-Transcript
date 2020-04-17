@@ -228,11 +228,20 @@ function App() {
   const checkForHighlight = React.useMemo(
     () => (paragraphID) => {
       const current = state.playedSeconds;
-      const spanObj = transcript[paragraphID - 1].spans.find(
-        (span) => current >= span.start && current < span.end
-      );
-      if (spanObj) {
-        return spanObj.id;
+      if (transcript[paragraphID - 1].end < state.playedSeconds) {
+        // Played
+        return -1;
+      } else if (transcript[paragraphID - 1].start > state.playedSeconds) {
+        // Not Played
+        return 0;
+      } else {
+        // In current Paragraph
+        const spanObj = transcript[paragraphID - 1].spans.find(
+          (span) => current >= span.start && current < span.end
+        );
+        if (spanObj) {
+          return spanObj.id;
+        }
       }
       return 0;
     },

@@ -19,9 +19,14 @@
   margin-top: 1rem;
 }
 
-.Span-Text:hover {
+.Span-Text:hover,
+.Span-Text-Fade:hover {
   background-color: #1f2b33;
   cursor: pointer;
+}
+
+.Span-Text-Fade {
+  color: #7b8084;
 }
 
 .Span-Highlight {
