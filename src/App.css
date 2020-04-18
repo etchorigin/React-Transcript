@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  min-width: 600px;
   max-width: 1000px;
   margin: auto;
 }
@@ -24,7 +25,8 @@
 .Details-Container {
   display: flex;
   flex-direction: column;
-  margin-left: 2rem;
+  flex-grow: 1;
+  margin: 0 2rem;
 }
 
 .Details-Info-Container {
@@ -36,7 +38,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 14rem;
+  width: 18rem;
   margin-top: 1rem;
 }
 
@@ -51,12 +53,36 @@
 
 .Player {
   background-color: black;
+  width: 200px;
+  flex-shrink: 0;
+}
+
+.Wave-Container {
+  display: flex;
+}
+
+.Wave-Container-Labels {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding-bottom: 48px;
+}
+
+.Wave-Container-Wave-And-Bar {
+  flex-grow: 1;
 }
 
 .Wave {
   width: 100% !important;
+  height: 100px !important;
   margin: 0 !important;
   padding: 0 !important;
+  display: flex;
+}
+
+.Wave .waveform {
+  width: 100%;
+  margin: auto;
 }
 
 .Icon-Spacer {

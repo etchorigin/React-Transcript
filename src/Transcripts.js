@@ -1,4 +1,4 @@
-export const transcript = {
+export const TRANSCRIPT_SOURCE_ONE = {
   language: "en",
   paragraphs: [
     {
@@ -328,4 +328,150 @@ export const transcript = {
   ],
 };
 
-export default transcript;
+export const TRANSCRIPT_SOURCE_TWO = {
+  language: "en",
+  paragraphs: [
+    {
+      cues: [
+        {
+          time: 24470,
+          text: "I hear the drums echoing tonight",
+        },
+        {
+          time: 27769,
+          text: "But she hears only whispers of some quiet conversation",
+        },
+        {
+          time: 36169,
+          text: "She's coming in, 12:30 flight",
+        },
+        {
+          time: 39637,
+          text:
+            "Her moonlit wings reflect the stars that guide me towards salvation",
+        },
+        {
+          time: 47879,
+          text: "I stopped an old man along the way",
+        },
+        {
+          time: 51528,
+          text: "Hoping to find some old forgotten words or ancient melodies",
+        },
+        {
+          time: 59033,
+          text:
+            'He turned to me as if to say "Hurry boy, it\'s waiting there for you" ',
+        },
+      ],
+    },
+    {
+      cues: [
+        {
+          time: 70103,
+          text: "It's gonna take a lot to drag me away from you",
+        },
+        {
+          time: 75332,
+          text: "There's nothing that a hundred men or more could ever do",
+        },
+        {
+          time: 80297,
+          text: "I bless the rains down in Africa",
+        },
+        {
+          time: 85720,
+          text: "Gonna take some time to do the things we never had",
+        },
+      ],
+    },
+    {
+      cues: [
+        {
+          time: 103840,
+          text: "The wild dogs cry out in the night",
+        },
+        {
+          time: 107006,
+          text: "As they grow restless longing for some solitary company",
+        },
+        {
+          time: 115529,
+          text:
+            "I know that I must do what's right As sure as Kilimanjaro rises like Olympus above the Serengeti",
+        },
+        {
+          time: 127027,
+          text:
+            "I seek to cure what's deep inside Frightened of this thing that I've become",
+        },
+      ],
+    },
+    {
+      cues: [
+        {
+          time: 137796,
+          text: "It's gonna take a lot to drag me away from you",
+        },
+        {
+          time: 142948,
+          text: "There's nothing that a hundred men or more could ever do",
+        },
+        {
+          time: 147767,
+          text: "I bless the rains down in Africa",
+        },
+        {
+          time: 153491,
+          text: "Gonna take some time to do the things we never had",
+        },
+      ],
+    },
+    {
+      cues: [
+        {
+          time: 186960,
+          text: "Hurry boy, she's waiting there for you",
+        },
+      ],
+    },
+    {
+      cues: [
+        {
+          time: 193915,
+          text: "It's gonna take a lot to drag me away from you",
+        },
+        {
+          time: 199107,
+          text: "There's nothing that a hundred men or more could ever do",
+        },
+        {
+          time: 204300,
+          text: "I bless the rains down in Africa",
+        },
+        {
+          time: 209724,
+          text: "I bless the rains down in Africa",
+        },
+        {
+          time: 214998,
+          text: "I bless the rains down in Africa",
+        },
+        {
+          time: 220222,
+          text: "I bless the rains down in Africa",
+        },
+        {
+          time: 225402,
+          text: "I bless the rains down in Africa",
+        },
+        {
+          time: 230273,
+          text: "Gonna take some time to do the things we never had",
+        },
+      ],
+    },
+  ],
+};
+
+export default TRANSCRIPT_SOURCE_ONE;

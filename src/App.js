@@ -5,7 +5,7 @@ import {
   Elevation,
   FocusStyleManager,
   H6,
-  H2,
+  H4,
   Icon,
   Slider,
 } from "@blueprintjs/core";
@@ -21,32 +21,62 @@ import Paragraph from "./Components/Paragraph";
 
 import { formatSeconds, formatProgressToSeconds } from "./TimeHelper";
 
-import Transcript from "./Transcript";
+import { TRANSCRIPT_SOURCE_ONE, TRANSCRIPT_SOURCE_TWO } from "./Transcripts";
 
 FocusStyleManager.onlyShowFocusOnTabs();
 document.body.className = "bp3-dark";
 
+const SOURCES = {
+  1: {
+    url:
+      "https://download.ted.com/talks/GeorgeZaidan_Aphids_2019E.mp4?apikey=TEDDOWNLOAD",
+    author: "George Zaidan | TED-Ed",
+    title: "The bug that poops candy",
+  },
+  2: {
+    url:
+      "https://dschoon.github.io/react-waves/static/media/africa.5aa39e77.mp3",
+    author: "Toto",
+    title: "Africa",
+  },
+};
+
 const INITIAL_STATE = {
+  source: 1,
+  sourceType: "VIDEO",
+  channels: 1,
+  url: SOURCES[1].url,
   playing: false,
   played: 0,
   playedSeconds: 0,
   durationSeconds: 0,
   playBackRate: 1,
   volume: 0.5,
+  volumeLeft: 0.5,
+  volumeRight: 0.5,
   seeking: false,
   waveSurfer: null,
   reactPlayer: null,
+  leftGain: null,
+  rightGain: null,
 };
-
-const SOURCE_URL =
-  "https://download.ted.com/talks/GeorgeZaidan_Aphids_2019E.mp4?apikey=TEDDOWNLOAD";
 
 const reducer = (state, action) => {
   const loaded = state.reactPlayer && state.waveSurfer;
 
   switch (action.type) {
+    case "SET_SOURCE":
+      return {
+        ...INITIAL_STATE,
+        source: action.value,
+        url: SOURCES[action.value].url,
+      };
     case "PLAY":
-      return { ...state, playing: true };
+      if (loaded) {
+        state.reactPlayer.seekTo(state.playedSeconds, "seconds");
+        return { ...state, playing: true };
+      }
+      return state;
     case "PAUSE":
       return { ...state, playing: false };
     case "RESET":
@@ -94,19 +124,36 @@ const reducer = (state, action) => {
         playedSeconds: action.playedSeconds,
         seeking: true,
       };
+    case "SET_PLAYED_SECONDS":
+      return { ...state, playedSeconds: action.value };
     case "SET_PLAYED":
       return { ...state, played: action.value };
     case "SET_SEEKING":
       return { ...state, seeking: false, playing: true };
     case "SET_PLAY_BACK_RATE":
       return { ...state, playBackRate: action.value };
-    case "SET_Volume":
+    case "SET_VOLUME":
+      state.leftGain.gain.value = action.value;
+      state.rightGain.gain.value = action.value;
       return { ...state, volume: action.value };
+    case "SET_VOLUME_LEFT":
+      state.leftGain.gain.value = action.value;
+      return { ...state, volumeLeft: action.value };
+    case "SET_VOLUME_RIGHT":
+      state.rightGain.gain.value = action.value;
+      return { ...state, volumeRight: action.value };
     case "SET_WAVESURFER":
-      return { ...state, waveSurfer: action.value };
+      return {
+        ...state,
+        waveSurfer: action.value,
+        leftGain: action.left,
+        rightGain: action.right,
+        channels: action.channels,
+      };
     case "SET_REACTPLAYER":
       return {
         ...state,
+        sourceType: action.sourceType,
         reactPlayer: action.player,
         durationSeconds: action.duration,
       };
@@ -157,32 +204,71 @@ const processTranscript = (transcript, endtime) => {
 
 function App() {
   const useForceRerender = () => React.useReducer((x) => x + 1, 0)[1];
+
   const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
   const [transcript, setTranscript] = React.useState([]);
   const reactPlayer = React.useRef();
   const seekingRef = React.useRef();
+
   React.useEffect(() => {
     seekingRef.current = state.seeking;
   });
 
   const forceRerender = useForceRerender();
 
+  const { author, title } = SOURCES[state.source];
+
   const handleOnWaveformReady = ({ wavesurfer }) => {
-    console.log("Load: ", wavesurfer);
-    dispatch({ type: "SET_WAVESURFER", value: wavesurfer });
+    console.log("Loaded Wavesurfer: ", wavesurfer);
+
+    const numberOfChannels = wavesurfer.backend.splitPeaks.length;
+
+    const splitter = wavesurfer.backend.ac.createChannelSplitter(2);
+    const merger = wavesurfer.backend.ac.createChannelMerger(2);
+    const leftGain = wavesurfer.backend.ac.createGain();
+    const rightGain = wavesurfer.backend.ac.createGain();
+
+    splitter.connect(leftGain, numberOfChannels === 2 ? 0 : 1);
+    splitter.connect(rightGain, 1);
+    leftGain.connect(merger, 0, numberOfChannels === 2 ? 0 : 1);
+    rightGain.connect(merger, 0, 1);
+
+    wavesurfer.backend.setFilters([splitter, leftGain, merger]);
+
+    leftGain.gain.value = state.volume;
+    rightGain.gain.value = state.volume;
+
+    dispatch({
+      type: "SET_WAVESURFER",
+      value: wavesurfer,
+      left: leftGain,
+      right: rightGain,
+      channels: numberOfChannels,
+    });
   };
 
   const handleDurationLoad = (duration) => {
+    seekingRef.current = state.seeking;
     dispatch({
       type: "SET_REACTPLAYER",
+      sourceType: reactPlayer.current.player.player.player.tagName,
       player: reactPlayer.current,
       duration: duration,
     });
-    setTranscript(processTranscript(Transcript, duration));
+    setTranscript(
+      processTranscript(
+        state.source === 1 ? TRANSCRIPT_SOURCE_ONE : TRANSCRIPT_SOURCE_TWO,
+        duration
+      )
+    );
   };
 
   const handleEnded = () => {
     dispatch({ type: "PAUSE" });
+  };
+
+  const handleOnPosChange = (pos) => {
+    //console.log("POS: ", pos);
   };
 
   const handleProgress = (progress) => {
@@ -225,6 +311,10 @@ function App() {
     dispatch({ type: "SET_SEEKING" });
   };
 
+  const handleChangeSource = () => {
+    dispatch({ type: "SET_SOURCE", value: state.source + 1 > 2 ? 1 : 2 });
+  };
+
   const checkForHighlight = React.useMemo(
     () => (paragraphID) => {
       const current = state.playedSeconds;
@@ -254,21 +344,21 @@ function App() {
       <Card elevation={Elevation.TWO} className="Top-Container">
         <ReactPlayer
           ref={reactPlayer}
-          url={SOURCE_URL}
-          height="250px"
-          width="200px"
+          url={state.url}
+          height="300px"
+          width={state.sourceType === "VIDEO" ? "200px" : "0px"}
           progressInterval={100}
           playing={state.playing}
           playbackRate={state.playBackRate}
-          volume={state.volume}
+          volume={0}
           onProgress={handleProgress}
           onDuration={handleDurationLoad}
           onEnded={handleEnded}
           className="Player"
         />
         <div className="Details-Container">
-          <H6 className="Light-Font">George Zaidan | TED-Ed</H6>
-          <H2>The bug that poops candy</H2>
+          <H6 className="Light-Font">{author}</H6>
+          <H4>{title}</H4>
           <div className="Details-Info-Container">
             <span className="Details-Info-Time">
               {formatSeconds(state.playedSeconds)}
@@ -288,44 +378,64 @@ function App() {
               onClick={handlePlayPause}
             />
             <Button icon="step-forward" onClick={handleStepForward} />
-            <PopSlider volume={state.volume} dispatch={dispatch} />
+            <PopSlider
+              channels={state.channels}
+              volumeProps={{
+                volume: state.volume,
+                volumeLeft: state.volumeLeft,
+                volumeRight: state.volumeRight,
+              }}
+              dispatch={dispatch}
+            />
             <SelectButton
               playBackRate={state.playBackRate}
               dispatch={dispatch}
             />
+            <Button text="Source" onClick={handleChangeSource} />
           </div>
-          <ReactWaves
-            audioFile={SOURCE_URL}
-            options={{
-              backend: "MediaElement",
-              audioRate: state.playBackRate,
-              barHeight: 2,
-              cursorWidth: 0,
-              height: 50,
-              hideScrollbar: true,
-              progressColor: "#317cbd",
-              responsive: true,
-              waveColor: "#1f2b33",
-              fillParent: true,
-              interact: false,
-            }}
-            volume={0}
-            zoom={1}
-            playing={state.playing}
-            pos={state.playedSeconds}
-            onWaveformReady={handleOnWaveformReady}
-            className="Wave"
-          />
-          <Slider
-            min={0}
-            max={1000}
-            stepSize={1}
-            value={state.played}
-            labelRenderer={false}
-            onChange={handleSliderChange}
-            onRelease={handleSliderRelease}
-            className="Details-MediaControls-Slider-Container"
-          />
+          <div className="Wave-Container">
+            {state.channels === 2 && (
+              <div className="Wave-Container-Labels">
+                <span>L</span>
+                <span>R</span>
+              </div>
+            )}
+            <div className="Wave-Container-Wave-And-Bar">
+              <ReactWaves
+                audioFile={state.url}
+                onPosChange={handleOnPosChange}
+                options={{
+                  backend: "WebAudio",
+                  audioRate: state.playBackRate,
+                  splitChannels: true,
+                  barHeight: 2,
+                  cursorWidth: 0,
+                  height: 50,
+                  hideScrollbar: true,
+                  progressColor: "#317cbd",
+                  responsive: true,
+                  waveColor: "#1f2b33",
+                  fillParent: true,
+                  interact: false,
+                }}
+                zoom={1}
+                playing={state.playing}
+                pos={state.playedSeconds}
+                onReady={handleOnWaveformReady}
+                className="Wave"
+              />
+              <Slider
+                min={0}
+                max={1000}
+                stepSize={1}
+                value={state.played}
+                labelRenderer={false}
+                onChange={handleSliderChange}
+                onRelease={handleSliderRelease}
+                className="Details-MediaControls-Slider-Container"
+              />
+            </div>
+          </div>
         </div>
       </Card>
       <Card elevation={Elevation.TWO} className="Bottom-Container">

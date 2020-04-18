@@ -1,4 +1,19 @@
-.Slider-Container {
+.Slider-Container-One {
   padding: 1rem;
   width: 3rem;
+}
+
+.Slider-Container-Two {
+  display: flex;
+  padding: 1rem;
+  width: 5.5rem;
+}
+
+.Slider-Inner-Container {
+  display: flex;
+  flex-direction: column;
+}
+
+.Channel-Label {
+  margin: 4px 0 0 4px;
 }
