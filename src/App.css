@@ -77,7 +77,7 @@
   height: 100px !important;
   margin: 0 !important;
   padding: 0 !important;
-  display: flex;
+  display: flex !important;
 }
 
 .Wave .waveform {
