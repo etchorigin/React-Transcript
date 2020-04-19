@@ -317,28 +317,25 @@ function App() {
     dispatch({ type: "SET_SOURCE", value: state.source + 1 > 2 ? 1 : 2 });
   };
 
-  const checkForHighlight = React.useMemo(
-    () => (paragraphID) => {
-      const current = state.playedSeconds;
-      if (transcript[paragraphID - 1].end <= state.playedSeconds) {
-        // Played
-        return -1;
-      } else if (transcript[paragraphID - 1].start > state.playedSeconds) {
-        // Not Played
-        return 0;
-      } else {
-        // In current Paragraph
-        const spanObj = transcript[paragraphID - 1].spans.find(
-          (span) => current >= span.start && current < span.end
-        );
-        if (spanObj) {
-          return spanObj.id;
-        }
-      }
+  const checkForHighlight = (paragraphID) => {
+    const current = state.playedSeconds;
+    if (transcript[paragraphID - 1].end <= state.playedSeconds) {
+      // Played
+      return -1;
+    } else if (transcript[paragraphID - 1].start > state.playedSeconds) {
+      // Not Played
       return 0;
-    },
-    [transcript, state.playedSeconds]
-  );
+    } else {
+      // In current Paragraph
+      const spanObj = transcript[paragraphID - 1].spans.find(
+        (span) => current >= span.start && current < span.end
+      );
+      if (spanObj) {
+        return spanObj.id;
+      }
+    }
+    return 0;
+  };
 
   return (
     <div className="App">
