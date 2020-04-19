@@ -320,7 +320,7 @@ function App() {
   const checkForHighlight = React.useMemo(
     () => (paragraphID) => {
       const current = state.playedSeconds;
-      if (transcript[paragraphID - 1].end < state.playedSeconds) {
+      if (transcript[paragraphID - 1].end <= state.playedSeconds) {
         // Played
         return -1;
       } else if (transcript[paragraphID - 1].start > state.playedSeconds) {
