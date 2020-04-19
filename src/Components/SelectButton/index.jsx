@@ -32,7 +32,7 @@ const RenderPlayBackRateItem = (value, { handleClick }) => (
 const Select = React.memo(BPSelect);
 
 const SelectButton = (props) => {
-  const { playBackRate, dispatch } = props;
+  const { playBackRate, disabled, dispatch } = props;
 
   const handleSelect = (item) => {
     dispatch({ type: "SET_PLAY_BACK_RATE", value: item });
@@ -45,8 +45,13 @@ const SelectButton = (props) => {
       itemListRenderer={RenderPlayBackRateMenu}
       itemRenderer={RenderPlayBackRateItem}
       onItemSelect={handleSelect}
+      disabled={disabled}
     >
-      <Button text={`${playBackRate}x`} className="Select-Button" />
+      <Button
+        text={`${playBackRate}x`}
+        className="Select-Button"
+        disabled={disabled}
+      />
     </Select>
   );
 };

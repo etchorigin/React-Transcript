@@ -20,6 +20,7 @@
   margin: 1rem;
   padding: 0;
   overflow-y: auto;
+  min-height: 4rem;
 }
 
 .Details-Container {
@@ -83,6 +84,10 @@
 .Wave .waveform {
   width: 100%;
   margin: auto;
+}
+
+.Spinner {
+  padding: 1rem;
 }
 
 .Icon-Spacer {

@@ -4,41 +4,41 @@ import { Button, Slider, Popover, PopoverPosition } from "@blueprintjs/core";
 import "./Style.css";
 
 const SingleChannelVolumeButton = (props) => {
-  const { volume } = props;
+  const { volume, disabled } = props;
   switch (volume) {
     case 5:
-      return <Button icon="volume-up" />;
+      return <Button icon="volume-up" disabled={disabled} />;
     case 0:
-      return <Button icon="volume-off" />;
+      return <Button icon="volume-off" disabled={disabled} />;
     default:
-      return <Button icon="volume-down" />;
+      return <Button icon="volume-down" disabled={disabled} />;
   }
 };
 
 const DoubleChannelVolumeButton = (props) => {
-  const { volumeLeft, volumeRight } = props;
+  const { volumeLeft, volumeRight, disabled } = props;
 
   if (volumeLeft === 5 && volumeRight === 5) {
-    return <Button icon="volume-up" />;
+    return <Button icon="volume-up" disabled={disabled} />;
   }
 
   if (volumeLeft === 0 && volumeRight === 0) {
-    return <Button icon="volume-off" />;
+    return <Button icon="volume-off" disabled={disabled} />;
   }
 
   if (volumeRight === 0) {
-    return <Button text="L" />;
+    return <Button text="L" disabled={disabled} />;
   }
 
   if (volumeLeft === 0) {
-    return <Button text="R" />;
+    return <Button text="R" disabled={disabled} />;
   }
 
-  return <Button icon="volume-down" />;
+  return <Button icon="volume-down" disabled={disabled} />;
 };
 
 const PopSlider = (props) => {
-  const { channels, volumeProps, dispatch } = props;
+  const { channels, volumeProps, disabled, dispatch } = props;
   const { volume, volumeLeft, volumeRight } = volumeProps;
 
   const handleSingleChannelChange = (value) => {
@@ -56,8 +56,12 @@ const PopSlider = (props) => {
   switch (channels) {
     case 1:
       return (
-        <Popover position={PopoverPosition.BOTTOM} enforceFocus={false}>
-          <SingleChannelVolumeButton volume={volume} />
+        <Popover
+          position={PopoverPosition.BOTTOM}
+          enforceFocus={false}
+          disabled={disabled}
+        >
+          <SingleChannelVolumeButton volume={volume} disabled={disabled} />
           <div className="Slider-Container-One">
             <Slider
               min={0}
@@ -77,6 +81,7 @@ const PopSlider = (props) => {
           <DoubleChannelVolumeButton
             volumeLeft={volumeLeft}
             volumeRight={volumeRight}
+            disabled={disabled}
           />
           <div className="Slider-Container-Two">
             <div className="Slider-Inner-Container">

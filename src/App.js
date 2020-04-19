@@ -8,6 +8,7 @@ import {
   H4,
   Icon,
   Slider,
+  Spinner,
 } from "@blueprintjs/core";
 import ReactPlayer from "react-player";
 import ReactWaves from "@dschoon/react-waves";
@@ -217,6 +218,7 @@ function App() {
   const forceRerender = useForceRerender();
 
   const { author, title } = SOURCES[state.source];
+  const loading = !state.reactPlayer || !state.waveSurfer;
 
   const handleOnWaveformReady = ({ wavesurfer }) => {
     console.log("Loaded Wavesurfer: ", wavesurfer);
@@ -371,13 +373,22 @@ function App() {
             <span className="Light-Font">1 language</span>
           </div>
           <div className="Details-MediaControls-Container">
-            <Button icon="reset" onClick={handleReset} />
-            <Button icon="step-backward" onClick={handleStepBack} />
+            <Button icon="reset" onClick={handleReset} disabled={loading} />
+            <Button
+              icon="step-backward"
+              onClick={handleStepBack}
+              disabled={loading}
+            />
             <Button
               icon={state.playing ? "pause" : "play"}
               onClick={handlePlayPause}
+              disabled={loading}
             />
-            <Button icon="step-forward" onClick={handleStepForward} />
+            <Button
+              icon="step-forward"
+              onClick={handleStepForward}
+              disabled={loading}
+            />
             <PopSlider
               channels={state.channels}
               volumeProps={{
@@ -386,12 +397,18 @@ function App() {
                 volumeRight: state.volumeRight,
               }}
               dispatch={dispatch}
+              disabled={loading}
             />
             <SelectButton
               playBackRate={state.playBackRate}
               dispatch={dispatch}
+              disabled={loading}
             />
-            <Button text="Source" onClick={handleChangeSource} />
+            <Button
+              text="Source"
+              onClick={handleChangeSource}
+              disabled={loading}
+            />
           </div>
           <div className="Wave-Container">
             {state.channels === 2 && (
@@ -433,24 +450,29 @@ function App() {
                 onChange={handleSliderChange}
                 onRelease={handleSliderRelease}
                 className="Details-MediaControls-Slider-Container"
+                disabled={loading}
               />
             </div>
           </div>
         </div>
       </Card>
       <Card elevation={Elevation.TWO} className="Bottom-Container">
-        <PerfectScrollbar>
-          {transcript.map((para) => (
-            <Paragraph
-              key={para.id}
-              start={para.start}
-              end={para.end}
-              spans={para.spans}
-              highlightIndex={checkForHighlight(para.id)}
-              dispatch={dispatch}
-            />
-          ))}
-        </PerfectScrollbar>
+        {loading ? (
+          <Spinner size={Spinner.SIZE_STANDARD} className="Spinner" />
+        ) : (
+          <PerfectScrollbar>
+            {transcript.map((para) => (
+              <Paragraph
+                key={para.id}
+                start={para.start}
+                end={para.end}
+                spans={para.spans}
+                highlightIndex={checkForHighlight(para.id)}
+                dispatch={dispatch}
+              />
+            ))}
+          </PerfectScrollbar>
+        )}
       </Card>
     </div>
   );
