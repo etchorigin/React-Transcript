@@ -36,7 +36,7 @@ const SOURCES = {
   },
   2: {
     url:
-      "https://dschoon.github.io/react-waves/static/media/africa.5aa39e77.mp3",
+      "https://traffic.libsyn.com/joeroganexp/p1196.mp3",
     author: "Toto",
     title: "Africa",
   },
