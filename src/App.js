@@ -24,19 +24,22 @@ import { formatSeconds, formatProgressToSeconds } from "./TimeHelper";
 
 import { TRANSCRIPT_SOURCE_ONE, TRANSCRIPT_SOURCE_TWO } from "./Transcripts";
 
+import video_file from "./Resources/video.mp4";
+import song_file from "./Resources/song.m4a";
+
 FocusStyleManager.onlyShowFocusOnTabs();
 document.body.className = "bp3-dark";
 
+// Video: "https://download.ted.com/talks/GeorgeZaidan_Aphids_2019E.mp4?apikey=TEDDOWNLOAD"
+// Song: "https://www.youtube.com/watch/FTQbiNvZqaY"
 const SOURCES = {
   1: {
-    url:
-      "https://download.ted.com/talks/GeorgeZaidan_Aphids_2019E.mp4?apikey=TEDDOWNLOAD",
+    url: video_file,
     author: "George Zaidan | TED-Ed",
     title: "The bug that poops candy",
   },
   2: {
-    url:
-      "https://traffic.libsyn.com/joeroganexp/p1196.mp3",
+    url: song_file,
     author: "Toto",
     title: "Africa",
   },
